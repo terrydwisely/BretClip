@@ -1,6 +1,6 @@
 """Test script to verify hotkey detection works."""
 
-import keyboard
+from pynput.keyboard import GlobalHotKeys
 import time
 
 print("=" * 50)
@@ -14,7 +14,9 @@ print()
 def on_hotkey():
     print(">>> SUCCESS! Hotkey Ctrl+Alt+B detected! <<<")
 
-keyboard.add_hotkey('ctrl+alt+b', on_hotkey)
+hotkeys = GlobalHotKeys({'<ctrl>+<alt>+b': on_hotkey})
+hotkeys.daemon = True
+hotkeys.start()
 
 try:
     while True:
@@ -22,4 +24,4 @@ try:
 except KeyboardInterrupt:
     print("\nExiting...")
 
-keyboard.unhook_all()
+hotkeys.stop()

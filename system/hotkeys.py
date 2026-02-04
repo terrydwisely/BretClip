@@ -1,16 +1,15 @@
-"""Global hotkey management using keyboard library."""
+"""Global hotkey management using pynput library."""
 
-import keyboard
+from pynput.keyboard import GlobalHotKeys
 from typing import Callable, Optional
-import threading
 
 
 class HotkeyManager:
-    """Manages global keyboard shortcuts using keyboard library."""
+    """Manages global keyboard shortcuts using pynput GlobalHotKeys."""
 
     def __init__(self):
         self.hotkey_callback: Optional[Callable] = None
-        self._running = False
+        self._listener: Optional[GlobalHotKeys] = None
 
     def set_callback(self, callback: Callable):
         """Set the callback function for when hotkey is pressed."""
@@ -19,21 +18,22 @@ class HotkeyManager:
     def _on_hotkey(self):
         """Internal handler when hotkey is detected."""
         if self.hotkey_callback:
-            # Run callback in separate thread to not block
-            threading.Thread(target=self.hotkey_callback, daemon=True).start()
+            self.hotkey_callback()
 
     def start(self):
         """Start listening for hotkeys."""
-        if not self._running:
-            # Register Ctrl+Alt+B hotkey
-            keyboard.add_hotkey('ctrl+alt+b', self._on_hotkey, suppress=False)
-            self._running = True
+        if self._listener is None:
+            self._listener = GlobalHotKeys({
+                '<ctrl>+<alt>+b': self._on_hotkey
+            })
+            self._listener.daemon = True
+            self._listener.start()
 
     def stop(self):
         """Stop listening for hotkeys."""
-        if self._running:
-            keyboard.unhook_all_hotkeys()
-            self._running = False
+        if self._listener is not None:
+            self._listener.stop()
+            self._listener = None
 
     def __enter__(self):
         self.start()

@@ -20,7 +20,7 @@ from PyQt5.QtCore import Qt, QRect, QPoint, pyqtSignal, QTimer
 from PyQt5.QtGui import QPixmap, QImage, QPainter, QColor, QCursor
 from PIL import Image
 import mss
-import keyboard
+from pynput.keyboard import GlobalHotKeys
 
 # ============ SCREEN CAPTURE ============
 class ScreenCapture:
@@ -282,8 +282,10 @@ class BretClipApp:
         self.editor = None
         self.overlay = None
 
-        # Register hotkey
-        keyboard.add_hotkey('ctrl+alt+b', self.on_hotkey, suppress=False)
+        # Register hotkey with pynput
+        self._hotkeys = GlobalHotKeys({'<ctrl>+<alt>+b': self.on_hotkey})
+        self._hotkeys.daemon = True
+        self._hotkeys.start()
         print("BretClip running. Press Ctrl+Alt+B to capture.")
 
     def on_hotkey(self):
